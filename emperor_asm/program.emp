@@ -1,0 +1,7 @@
+self 04_i
+system 01_i
+lit 000c 05_i
+xor 02_i 02_i 02_i
+goto 01_i 02_i; arguments in 04_i, 05_i
+
+data 00200a00

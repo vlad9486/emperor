@@ -35,7 +35,9 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/main.o
+	${OBJECTDIR}/interpreter.o \
+	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/memory_manager.o
 
 
 # C Compiler Flags
@@ -62,10 +64,20 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/emperor_vm: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/emperor_vm ${OBJECTFILES} ${LDLIBSOPTIONS}
 
+${OBJECTDIR}/interpreter.o: interpreter.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/interpreter.o interpreter.c
+
 ${OBJECTDIR}/main.o: main.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.c
+
+${OBJECTDIR}/memory_manager.o: memory_manager.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/memory_manager.o memory_manager.c
 
 # Subprojects
 .build-subprojects:

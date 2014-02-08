@@ -123,10 +123,11 @@ int main(int argc, char* argv[])
     FILE* output;
     size_t size;
     char* data;
-    const char* ifn = "program.emp";
-    const char* ofn = "program.b";
 
-    input = fopen(ifn, "rb");
+    if (argc < 3) {
+        printf("too few parameters\n");
+    }
+    input = fopen(argv[1], "rb");
     fseek(input, 0, SEEK_END);
     size = ftell(input);
     rewind(input);
@@ -134,7 +135,7 @@ int main(int argc, char* argv[])
     fread(data, size, 1, input);
     fclose(input);
 
-    output = fopen(ofn, "wb");
+    output = fopen(argv[2], "wb");
     assembly(size, data, output);
     free(data);
     fclose(output);

@@ -3,6 +3,6 @@
 
 #include "common.h"
 
-void execute_code(hdata_t code);
+void execute_code(hdata_t code, herror_t* perror);
 
 #endif	/* INTERPRETER_H */

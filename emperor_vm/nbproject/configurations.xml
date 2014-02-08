@@ -7,6 +7,7 @@
       <itemPath>common.h</itemPath>
       <itemPath>interpreter.h</itemPath>
       <itemPath>memory_manager.h</itemPath>
+      <itemPath>virtual_machine.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -18,6 +19,7 @@
       <itemPath>interpreter.c</itemPath>
       <itemPath>main.c</itemPath>
       <itemPath>memory_manager.c</itemPath>
+      <itemPath>virtual_machine.c</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -53,6 +55,10 @@
       </item>
       <item path="memory_manager.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="virtual_machine.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="virtual_machine.h" ex="false" tool="3" flavor2="0">
+      </item>
     </conf>
     <conf name="Release" type="1">
       <toolsSet>
@@ -85,6 +91,10 @@
       <item path="memory_manager.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="memory_manager.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="virtual_machine.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="virtual_machine.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>

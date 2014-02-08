@@ -1,6 +1,8 @@
-build/Debug/MinGW-Windows/interpreter.o: interpreter.c interpreter.h \
- common.h
+build/Debug/MinGW-Windows/interpreter.o: interpreter.c virtual_machine.h \
+ common.h interpreter.h
 
-interpreter.h:
+virtual_machine.h:
 
 common.h:
+
+interpreter.h:

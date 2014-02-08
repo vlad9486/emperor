@@ -37,7 +37,8 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/interpreter.o \
 	${OBJECTDIR}/main.o \
-	${OBJECTDIR}/memory_manager.o
+	${OBJECTDIR}/memory_manager.o \
+	${OBJECTDIR}/virtual_machine.o
 
 
 # C Compiler Flags
@@ -54,7 +55,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=-lm
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -78,6 +79,11 @@ ${OBJECTDIR}/memory_manager.o: memory_manager.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/memory_manager.o memory_manager.c
+
+${OBJECTDIR}/virtual_machine.o: virtual_machine.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/virtual_machine.o virtual_machine.c
 
 # Subprojects
 .build-subprojects:

@@ -17,7 +17,7 @@ typedef struct reg_tag {
 } reg_t;
 
 const op_t table[] = {
-    {   "mov", 0x00, 0x8181},
+    {   "mov", 0x00, 0x9181},
     {   "add", 0x10, 0x8111},
     {   "sub", 0x14, 0x8111},
     {   "mul", 0x18, 0x8111},
@@ -53,14 +53,14 @@ const op_t table[] = {
     {  "hole", 0x4e, 0x0000},
     { "store", 0x50, 0x8111},
     {  "load", 0x54, 0xa111},
-    {   "nop", 0x58, 0x0011},
+    {  "goto", 0x58, 0x0011},
     { "egoto", 0x59, 0x0011},
     { "lgoto", 0x5a, 0x0011},
     {"nggoto", 0x5b, 0x0011},
     { "ggoto", 0x5c, 0x0011},
     {"nlgoto", 0x5d, 0x0011},
     {"negoto", 0x5e, 0x0011},
-    {  "goto", 0x5f, 0x0011},
+    {   "nop", 0x5f, 0x0011},
     {  "data", 0xff, 0x0003},
 };
 
@@ -189,11 +189,11 @@ void execute_program(char* str, int* code, int program)
             str += 8;/*unn*/
         }
         if (((program & 0xf) >= 5) && ((program & 0xf) <= 7)) {
-            *code |= ((regs[(program & 0xf) - 5].type) & ((1 << 1) - 1))  << suffix_pos;
+            *code |= ((regs[(program & 0xf) - 5].type) & ((1 << 1) - 1)) << suffix_pos;
             suffix_pos++;
         }
         if (((program & 0xf) >= 8) && ((program & 0xf) <= 10)) {
-            *code |= ((regs[(program & 0xf) - 8].type) & ((1 << 2) - 1))  << suffix_pos;
+            *code |= ((regs[(program & 0xf) - 8].type) & ((1 << 2) - 1)) << suffix_pos;
             suffix_pos += 2;
         }
         program >>= 4;

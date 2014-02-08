@@ -1,7 +1,11 @@
 self 04_i
-system 01_i
-lit 000c 05_i
+lit 0005 05_i
+mov 05_i 05_l
 xor 02_i 02_i 02_i
-goto 01_i 02_i; arguments in 04_i, 05_i
+system 02_i; arguments in 04_i, 05_i
+stk
 
-data 00200a00
+data 6c6c6568
+data 77202c6f
+data 646c726f
+data 00000a00

@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include "memory_manager.h"
 
-/* TODO: cache hdata_t <-> ptr_t conformity
+/* TODO:
+ * cache hdata_t <-> ptr_t conformity
  * memory mapped file
  */
 
@@ -127,6 +128,7 @@ leaf_t* free_handle(hdata_t data, herror_t* perror)
         i--;
     }
 
+    res = (leaf_t*)(*(temp[0]));
     i = 0;
     while (i < LEVELS_NUMBER) {
         (*temp[i+1])->header--;
@@ -136,10 +138,9 @@ leaf_t* free_handle(hdata_t data, herror_t* perror)
         }
         i++;
     }
-    res = (leaf_t*)(*(temp[0]));
     *(temp[0]) = 0;
     free(temp);
-
+                 
     return res;
 }
 
@@ -168,6 +169,12 @@ leaf_t* resolve_conformity(hdata_t data, herror_t* perror)
     return res;
 }
 
+word_t rev4(word_t x)
+{
+    return ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) <<  8) | 
+           ((x & 0x00ff0000) >>  8) | ((x & 0xff000000) >> 24);
+}
+
 hdata_t load_data(const char* fn, herror_t* perror)
 {
     hdata_t data;
@@ -190,6 +197,7 @@ hdata_t load_data(const char* fn, herror_t* perror)
     index = 0;
     while (index < size) {
         fread(&word, sizeof(word_t), 1, file);
+        word = rev4(word);
         write_word(data, index, word, perror);
         if (*perror != E_NONE) {
             return 0;
@@ -198,6 +206,7 @@ hdata_t load_data(const char* fn, herror_t* perror)
     }   /* TODO: OPTIMIZE IT */
     if (k != 0) {
         fread(&word, k, 1, file);
+        word = rev4(word);
         write_word(data, size, word, perror);
         if (*perror != E_NONE) {
             return 0;
@@ -276,14 +285,38 @@ word_t read_word(hdata_t data, index_t index, herror_t* perror)
 
     ptr = resolve_conformity(data, perror);
     if (*perror != E_NONE) {
-        return;
+        return 0;
     }
 
     if (index >= ptr->size) {
         *perror = E_ACCESSFORBIDDEN;
-        return;
+        return 0;
     }
 
     array = &(ptr->data);
     return array[index];
+}
+
+index_t get_size(hdata_t data, herror_t* perror)
+{
+    leaf_t* ptr;
+
+    ptr = resolve_conformity(data, perror);
+    if (*perror != E_NONE) {
+        return 0;
+    }
+
+    return ptr->size;
+}
+
+void* get_pointer(hdata_t data, herror_t* perror)
+{
+    leaf_t* ptr;
+
+    ptr = resolve_conformity(data, perror);
+    if (*perror != E_NONE) {
+        return 0;
+    }
+
+    return &(ptr->data);
 }

@@ -30,10 +30,10 @@ void print_error(const char* msg, herror_t* perror)
     }
 }
 
-void initialize_vm()
+void initialize_vm(const char* fn)
 {
     registry_file = malloc(sizeof(registry_file_t));
-    main_module = load_data("../emperor_asm/program.b", &error);
+    main_module = load_data(fn, &error);
     print_error("when loading module", &error);
 }
 

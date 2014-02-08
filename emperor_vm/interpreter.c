@@ -32,7 +32,6 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
     size = get_size(code, perror);
     while ((flags & 0x8) == 0) {
         command = read_word(code, pos, perror); /* TODO: cache it */
-        printf("[EXECUTE]: 0x%x at 0x%x\n", command, pos);
         op = command >> 24;
         a = command >> 16;
         b = command >> 8;

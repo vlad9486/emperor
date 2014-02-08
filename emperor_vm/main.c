@@ -5,11 +5,15 @@
  ************************************************/
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "virtual_machine.h"
 
 int main(int argc, char* argv[]) {
 
-    initialize_vm();
+    if (argc < 2) {
+        printf("[ERROR]: too few parameters\n");
+    }
+    initialize_vm(argv[1]);
     loop();
     finalize_vm();
 

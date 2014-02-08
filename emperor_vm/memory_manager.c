@@ -6,6 +6,7 @@
 /* TODO:
  * cache hdata_t <-> ptr_t conformity
  * memory mapped file
+ * saving to file
  */
 
 typedef struct leaf_tag {

@@ -10,7 +10,7 @@ typedef struct registry_file_tag {
     float float_[0x100];
 } registry_file_t;
 
-void initialize_vm();
+void initialize_vm(const char* fn);
 void finalize_vm();
 void loop();
 

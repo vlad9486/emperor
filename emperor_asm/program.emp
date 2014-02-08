@@ -2,7 +2,7 @@ self 04_i
 lit 0005 05_i
 mov 05_i 05_l
 xor 02_i 02_i 02_i
-system 02_i; arguments in 04_i, 05_i
+system 02_i; arguments in 04_i, 05_l
 stk
 
 data 6c6c6568

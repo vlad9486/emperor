@@ -149,35 +149,35 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
         }
         if (op == 0x24) {
             flags &= 0xe;
-            flags |= (registry_file->int_[b] == -registry_file->int_[a]);
+            flags |= (registry_file->int_[b] == registry_file->int_[a]);
             flags &= 0xd;
-            flags |= (registry_file->int_[b] < -registry_file->int_[a]);
+            flags |= (registry_file->int_[b] < registry_file->int_[a]) << 1;
             flags &= 0xb;
-            flags |= (registry_file->int_[b] > -registry_file->int_[a]);
+            flags |= (registry_file->int_[b] > registry_file->int_[a]) << 2;
         }
         if (op == 0x25) {
             flags &= 0xe;
-            flags |= (registry_file->long_[b] == -registry_file->long_[a]);
+            flags |= (registry_file->long_[b] == registry_file->long_[a]);
             flags &= 0xd;
-            flags |= (registry_file->long_[b] < -registry_file->long_[a]);
+            flags |= (registry_file->long_[b] < registry_file->long_[a]) << 1;;
             flags &= 0xb;
-            flags |= (registry_file->long_[b] > -registry_file->long_[a]);
+            flags |= (registry_file->long_[b] > registry_file->long_[a]) << 2;
         }
         if (op == 0x26) {
             flags &= 0xe;
-            flags |= (registry_file->float_[b] == -registry_file->float_[a]);
+            flags |= (registry_file->float_[b] == registry_file->float_[a]);
             flags &= 0xd;
-            flags |= (registry_file->float_[b] < -registry_file->float_[a]);
+            flags |= (registry_file->float_[b] < registry_file->float_[a]) << 1;;
             flags &= 0xb;
-            flags |= (registry_file->float_[b] > -registry_file->float_[a]);
+            flags |= (registry_file->float_[b] > registry_file->float_[a]) << 2;
         }
         if (op == 0x27) {
             flags &= 0xe;
-            flags |= (registry_file->double_[b] == -registry_file->double_[a]);
+            flags |= (registry_file->double_[b] == registry_file->double_[a]);
             flags &= 0xd;
-            flags |= (registry_file->double_[b] < -registry_file->double_[a]);
+            flags |= (registry_file->double_[b] < registry_file->double_[a]) << 1;;
             flags &= 0xb;
-            flags |= (registry_file->double_[b] > -registry_file->double_[a]);
+            flags |= (registry_file->double_[b] > registry_file->double_[a]) << 2;
         }
         if (op == 0x28) {
             registry_file->int_[b] = registry_file->int_[a]+1;
@@ -342,9 +342,12 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
             registry_file->double_[c] = (double)temp;
         }
         if ((op & 0x58) == 0x58) {
-            if ((op == 0x58) || (flags & (op & 0x7))) {
+            if ((op == 0x58) || ((flags & 0x7) & (op & 0x7))) {
                 code = registry_file->int_[a];
                 pos = registry_file->long_[b];
+            }
+            else {
+                pos++;
             }
         }
 

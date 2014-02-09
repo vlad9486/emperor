@@ -80,7 +80,7 @@ bool_t compare_part(const char* a, const char* b)
         i++;
     }
 
-    return TRUE;
+    return (b[i] == 0) || (b[i] == ' ') || (b[i] == '\n');
 }
 
 int length(const char* s)

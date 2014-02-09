@@ -1,11 +1,24 @@
 self 04_i
-lit 0005 05_i
+lit 000e 05_i
 mov 05_i 05_l
 xor 02_i 02_i 02_i
+
+xor 00_i 00_i 00_i
+lit 000e 05_i
+mov 05_i 00_l
+load 04_i 00_l 01_i
+lit 0002 03_i
+mov 03_i 03_l
 system 02_i; arguments in 04_i, 05_l
+cmp 00_i 01_i
+inc 00_i 00_i
+ggoto 04_i 03_l
+
 stk
 
 data 6c6c6568
 data 77202c6f
 data 646c726f
 data 00000a00
+
+data 00000005

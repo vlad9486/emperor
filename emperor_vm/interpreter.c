@@ -293,7 +293,7 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
             registry_file->int_[a] = code;
         }
         if (op == 0x4d) {
-            syscall(registry_file->long_[a], perror);
+            syscall(registry_file->int_[a], perror);
         }
         if (op == 0x4e);
         if (op == 0x4f);

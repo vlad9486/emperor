@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "interpreter.h"
@@ -33,6 +34,7 @@ void print_error(const char* msg, herror_t* perror)
 void initialize_vm(const char* fn)
 {
     registry_file = malloc(sizeof(registry_file_t));
+    memset(registry_file, 0, sizeof(*registry_file));
     main_module = load_data(fn, &error);
     print_error("when loading module", &error);
 }

@@ -4,10 +4,7 @@
 #include "common.h"
 
 typedef struct registry_file_tag {
-    uint64_t long_[0x100];
-    double double_[0x100];
-    uint32_t int_[0x100];
-    float float_[0x100];
+    uint64_t regs[0x10];
 } registry_file_t;
 
 void initialize_vm(const char* fn);

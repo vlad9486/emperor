@@ -183,7 +183,7 @@ hdata_t load_data(const char* fn, herror_t* perror)
     FILE* file;
     char k;
     index_t index;
-    word_t word;
+    word_t* ptr;
 
     file = fopen(fn, "rb");
     fseek(file, 0, SEEK_END);
@@ -195,23 +195,15 @@ hdata_t load_data(const char* fn, herror_t* perror)
     if (*perror != E_NONE) {
         return 0;
     }
+    ptr = get_pointer(data, perror);
+    if (*perror != E_NONE) {
+        return 0;
+    }
+    fread(ptr, (size+(k != 0))*sizeof(word_t), 1, file);
     index = 0;
-    while (index < size) {
-        fread(&word, sizeof(word_t), 1, file);
-        word = rev4(word);
-        write_word(data, index, word, perror);
-        if (*perror != E_NONE) {
-            return 0;
-        }
+    while (index < (size+(k != 0))) {
+        ptr[index] = rev4(ptr[index]);
         index++;
-    }   /* TODO: OPTIMIZE IT */
-    if (k != 0) {
-        fread(&word, k, 1, file);
-        word = rev4(word);
-        write_word(data, size, word, perror);
-        if (*perror != E_NONE) {
-            return 0;
-        }
     }
     fclose(file);
 
@@ -258,44 +250,6 @@ void free_array(hdata_t data, herror_t* perror)
     printf("[LOG]: deleted %d, 0x%x\n", data, ptr);
 
     free(ptr);
-}
-
-void write_word(hdata_t data, index_t index, word_t word, herror_t* perror)
-{
-    leaf_t* ptr;
-    word_t* array;
-
-    ptr = resolve_conformity(data, perror);
-    if (*perror != E_NONE) {
-        return;
-    }
-
-    if (index >= ptr->size) {
-        *perror = E_ACCESSFORBIDDEN;
-        return;
-    }
-
-    array = &(ptr->data);
-    array[index] = word;
-}
-
-word_t read_word(hdata_t data, index_t index, herror_t* perror)
-{
-    leaf_t* ptr;
-    word_t* array;
-
-    ptr = resolve_conformity(data, perror);
-    if (*perror != E_NONE) {
-        return 0;
-    }
-
-    if (index >= ptr->size) {
-        *perror = E_ACCESSFORBIDDEN;
-        return 0;
-    }
-
-    array = &(ptr->data);
-    return array[index];
 }
 
 index_t get_size(hdata_t data, herror_t* perror)

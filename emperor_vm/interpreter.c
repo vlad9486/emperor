@@ -26,12 +26,16 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
     unsigned char a;
     unsigned char b;
     unsigned char c;
-    index_t temp;
+    word_t* array;
+    word_t* iarray;
+    lword_t* larray;
 
     read = FALSE;
     size = get_size(code, perror);
     while ((flags & 0x8) == 0) {
-        command = read_word(code, pos, perror); /* TODO: cache it */
+        /* TODO: here should be instruction cache */
+        array = get_pointer(code, perror);
+        command = array[pos];
         op = command >> 24;
         a = command >> 16;
         b = command >> 8;
@@ -299,47 +303,36 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
         if (op == 0x4f);
 
         if (op == 0x50) {
-            write_word(registry_file->int_[c], registry_file->long_[b],
-                    registry_file->int_[a], perror);
+            iarray = get_pointer(registry_file->int_[c], perror);
+            iarray[registry_file->long_[b]] = registry_file->int_[a];
         }
         if (op == 0x51) {
-            write_word(registry_file->int_[c], registry_file->long_[b],
-                    registry_file->long_[a] / (uint64_t)0x100000000, perror);
-            write_word(registry_file->int_[c], registry_file->long_[b]+1,
-                    registry_file->long_[a], perror);
+            larray = get_pointer(registry_file->int_[c], perror);
+            larray[registry_file->long_[b]/2] = registry_file->long_[a];
         }
         if (op == 0x52) {
-            write_word(registry_file->int_[c], registry_file->long_[b],
-                    registry_file->float_[a], perror);
+            iarray = get_pointer(registry_file->int_[c], perror);
+            iarray[registry_file->long_[b]] = registry_file->float_[a];
         }
         if (op == 0x53) {
-            write_word(registry_file->int_[c], registry_file->long_[b],
-                    (uint64_t)(registry_file->long_[a]) / (uint64_t)0x100000000, perror);
-            write_word(registry_file->int_[c], registry_file->long_[b]+1,
-                    (uint64_t)(registry_file->long_[a]), perror);
+            larray = get_pointer(registry_file->int_[c], perror);
+            larray[registry_file->long_[b]/2] = registry_file->double_[a];
         }
         if (op == 0x54) {
-            registry_file->int_[c] = read_word(registry_file->int_[a],
-                    registry_file->long_[b], perror);
+            iarray = get_pointer(registry_file->int_[a], perror);
+            registry_file->int_[c] = iarray[registry_file->long_[b]];
         }
         if (op == 0x55) {
-            registry_file->long_[c] = read_word(registry_file->int_[a],
-                    registry_file->long_[b], perror);
-            registry_file->long_[c] *= (uint64_t)0x100000000;
-            registry_file->long_[c] += read_word(registry_file->int_[a],
-                    registry_file->long_[b]+1, perror);
+            larray = get_pointer(registry_file->int_[a], perror);
+            registry_file->long_[c] = larray[registry_file->long_[b]/2];
         }
         if (op == 0x56) {
-            registry_file->float_[c] = read_word(registry_file->int_[a],
-                    registry_file->long_[b], perror);
+            iarray = get_pointer(registry_file->int_[a], perror);
+            registry_file->float_[c] = iarray[registry_file->long_[b]];
         }
         if (op == 0x57) {
-            temp = read_word(registry_file->int_[a],
-                    registry_file->long_[b], perror);
-            temp *= (uint64_t)0x100000000;
-            temp += read_word(registry_file->int_[a],
-                    registry_file->long_[b]+1, perror);
-            registry_file->double_[c] = (double)temp;
+            larray = get_pointer(registry_file->int_[a], perror);
+            registry_file->double_[c] = larray[registry_file->long_[b]/2];
         }
         if ((op & 0x58) == 0x58) {
             if ((op == 0x58) || ((flags & 0x7) & (op & 0x7))) {

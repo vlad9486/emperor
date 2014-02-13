@@ -13,9 +13,11 @@
 
 typedef uint32_t hdata_t;
 typedef uint32_t herror_t;
-typedef uint32_t esize_t;
-typedef uint32_t word_t;
-typedef uint64_t lword_t;
+typedef uint64_t esize_t;
+typedef uint8_t hword_t;
+typedef uint16_t sword_t;
+typedef uint32_t dword_t;
+typedef uint64_t qword_t;
 typedef uint64_t index_t;
 typedef char bool_t;
 

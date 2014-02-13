@@ -5,6 +5,7 @@
 
 typedef struct registry_file_tag {
     uint64_t regs[0x10];
+    uint8_t type[0x10];
 } registry_file_t;
 
 void initialize_vm(const char* fn);

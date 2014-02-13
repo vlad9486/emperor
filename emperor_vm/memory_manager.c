@@ -13,11 +13,10 @@
 
 typedef struct leaf_tag {
     esize_t size;
-    lword_t data; /*users data, probably more than one word, i hope :)*/
+    hword_t data; /*users data, probably more than one word, i hope :)*/
 } leaf_t;
 
 typedef struct table_tag {
-    uint64_t size;
     uint64_t header;
     struct table_tag* nodes[NODES_NUMBER];
 } table_t;
@@ -32,7 +31,7 @@ table_t* create_table(herror_t* perror)
         return 0;
     }
     memset(res, 0, sizeof(*res));
-    res->size = sizeof(*res);
+    /*res->size = sizeof(*res) * SIZE_KOEF;*/
     res->header = 0;
     *perror = E_NONE;
 
@@ -76,13 +75,13 @@ bool_t try_to_create_node(hdata_t* data, table_t** table, leaf_t* ptr,
         }
         else {
             condition = try_to_create_node(data, &((*table)->nodes[i]), ptr,
-                level-1, perror);
+                level - 1, perror);
             if (*perror != E_NONE) {
                 return FALSE;
             }
             if (condition) {
                 (*table)->header++;
-                (*data) |= (i << (level*BIT_PER_LEVEL));
+                (*data) |= (i << (level * BIT_PER_LEVEL));
                 return TRUE;
             }
         }
@@ -118,7 +117,7 @@ leaf_t* free_handle(hdata_t data, herror_t* perror)
     table_t*** temp;
     leaf_t* res;
 
-    temp = malloc((LEVELS_NUMBER+1)*sizeof(*temp));
+    temp = malloc((LEVELS_NUMBER + 1) * sizeof(*temp));
     temp[LEVELS_NUMBER] = &links_4;
     i = LEVELS_NUMBER;
     while (i != 0) {
@@ -126,18 +125,18 @@ leaf_t* free_handle(hdata_t data, herror_t* perror)
             *perror = E_INVALIDPTR;
             return 0;
         }
-        index = (data >> ((i-1)*BIT_PER_LEVEL)) & (NODES_NUMBER-1);
-        temp[i-1] = &((*(temp[i]))->nodes[index]);
+        index = (data >> ((i - 1) * BIT_PER_LEVEL)) & (NODES_NUMBER - 1);
+        temp[i - 1] = &((*(temp[i]))->nodes[index]);
         i--;
     }
 
     res = (leaf_t*)(*(temp[0]));
     i = 0;
     while (i < LEVELS_NUMBER) {
-        (*temp[i+1])->header--;
-        if ((*temp[i+1])->header == 0) {
-            free(*(temp[i+1]));
-            *(temp[i+1]) = 0;
+        (*temp[i + 1])->header--;
+        if ((*temp[i + 1])->header == 0) {
+            free(*(temp[i + 1]));
+            *(temp[i + 1]) = 0;
         }
         i++;
     }
@@ -172,28 +171,39 @@ leaf_t* resolve_conformity(hdata_t data, herror_t* perror)
     return res;
 }
 
-word_t rev4(word_t x)
+dword_t rev4(dword_t x)
 {
     return ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) <<  8) | 
            ((x & 0x00ff0000) >>  8) | ((x & 0xff000000) >> 24);
+}
+
+qword_t rev8(qword_t x)
+{
+    dword_t temp;
+    temp = *(dword_t*)(&x);
+    *(dword_t*)(&x) = *((dword_t*)(&x)+1);
+    *((dword_t*)(&x)+1) = temp;
+    //return ((qword_t)rev4(x & 0x00000000ffffffff) << 32) | ((qword_t)rev4(x >> 32) << 32);
+    return x;
 }
 
 hdata_t bind_file(const char* fn, herror_t* perror)
 {
     hdata_t data;
     esize_t size;
+    esize_t byte_size;
     FILE* file;
     char k;
     index_t index;
-    word_t* ptr;
+    dword_t* ptr;
 
     file = fopen(fn, "rb");
     fseek(file, 0, SEEK_END);
-    size = ftell(file);
+    byte_size = ftell(file);
     rewind(file);
-    k = size % sizeof(word_t);
-    size /= sizeof(word_t);
-    data = create_array(size*sizeof(lword_t)/sizeof(word_t)+(k != 0), perror);
+    k = byte_size % sizeof(*ptr);
+    size = byte_size / sizeof(*ptr);
+    data = create_array(byte_size / SIZE_KOEF, perror);
     if (*perror != E_NONE) {
         return 0;
     }
@@ -201,22 +211,17 @@ hdata_t bind_file(const char* fn, herror_t* perror)
     if (*perror != E_NONE) {
         return 0;
     }
-    fread(ptr, (size+(k != 0))*sizeof(word_t), 1, file);
+    fread(ptr, byte_size, 1, file);
+    fclose(file);
     index = 0;
-    while (index < (size+(k != 0))) {
+    while (index < (size + (k != 0))) {
         ptr[index] = rev4(ptr[index]);
         index++;
     }
-    fclose(file);
 
     /* TODO: MEMORY MAPPING */
 
     return data;
-}
-
-void sync_data(hdata_t data, herror_t* perror)
-{
-    /* TODO */
 }
 
 hdata_t create_array(esize_t size, herror_t* perror)
@@ -224,13 +229,13 @@ hdata_t create_array(esize_t size, herror_t* perror)
     leaf_t* ptr;
     hdata_t res;
 
-    ptr = malloc(size*sizeof(lword_t)+sizeof(esize_t));
+    ptr = malloc(size * SIZE_KOEF + sizeof(esize_t));
     if (ptr == 0) {
         *perror = E_OUTOFMEMORY;
         return 0;
     }
     ptr->size = size;
-    memset(&(ptr->data), 0, size*sizeof(lword_t));
+    memset(&(ptr->data), 0, size * SIZE_KOEF);
 
     res = alloc_handle(ptr, perror);
     if (*perror != E_NONE) {
@@ -251,16 +256,13 @@ void destroy_array(hdata_t data, herror_t* perror)
     }
     printf("[LOG]: deleted %d, 0x%x\n", data, ptr);
 
-    if (ptr->data != 0) {
-        free(ptr->data);
-    }
     free(ptr);
 }
 
-void write_word(hdata_t data, index_t index, lword_t word, herror_t* perror)
+void write_qword(hdata_t data, index_t index, qword_t word, herror_t* perror)
 {
     leaf_t* ptr;
-    lword_t* array;
+    qword_t* array;
 
     ptr = resolve_conformity(data, perror);
     if (*perror != E_NONE) {
@@ -272,14 +274,14 @@ void write_word(hdata_t data, index_t index, lword_t word, herror_t* perror)
         return;
     }
 
-    array = &(ptr->data);
-    array[index] = word;
+    array = (qword_t*)&(ptr->data);
+    array[index * sizeof(*array) / SIZE_KOEF] = word;
 }
 
-lword_t read_word(hdata_t data, index_t index, herror_t* perror)
+qword_t read_qword(hdata_t data, index_t index, herror_t* perror)
 {
     leaf_t* ptr;
-    lword_t* array;
+    qword_t* array;
 
     ptr = resolve_conformity(data, perror);
     if (*perror != E_NONE) {
@@ -291,8 +293,46 @@ lword_t read_word(hdata_t data, index_t index, herror_t* perror)
         return 0;
     }
 
-    array = &(ptr->data);
-    return array[index];
+    array = (qword_t*)&(ptr->data);
+    return array[index * sizeof(*array) / SIZE_KOEF];
+}
+
+void write_dword(hdata_t data, index_t index, dword_t word, herror_t* perror)
+{
+    leaf_t* ptr;
+    dword_t* array;
+
+    ptr = resolve_conformity(data, perror);
+    if (*perror != E_NONE) {
+        return;
+    }
+
+    if (index >= ptr->size) {
+        *perror = E_ACCESSFORBIDDEN;
+        return;
+    }
+
+    array = (dword_t*)&(ptr->data);
+    array[index * SIZE_KOEF / sizeof(*array)] = word;
+}
+
+dword_t read_dword(hdata_t data, index_t index, herror_t* perror)
+{
+    leaf_t* ptr;
+    dword_t* array;
+
+    ptr = resolve_conformity(data, perror);
+    if (*perror != E_NONE) {
+        return 0;
+    }
+
+    if (index >= ptr->size) {
+        *perror = E_ACCESSFORBIDDEN;
+        return 0;
+    }
+
+    array = (dword_t*)&(ptr->data);
+    return array[index * SIZE_KOEF / sizeof(*array)];
 }
 
 index_t get_size(hdata_t data, herror_t* perror)

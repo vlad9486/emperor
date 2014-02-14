@@ -9,21 +9,7 @@
  * threads
  */
 
-#define ARRAYS_PER_PAGE 0x400
-
-typedef struct permissions_tag {
-    hdata_t* arrays;
-    sword_t* descr;
-    struct permissions_tag* next;
-    sword_t number;
-    sword_t deepness;
-} permissions_t;
-
-typedef struct module_tag {
-    hdata_t code;
-    index_t entry;
-    permissions_t permissions;
-} module_t;
+#define ARRAYS_PER_PAGE 0x10000
 
 herror_t error;
 hdata_t main_module;
@@ -71,16 +57,48 @@ void loop()
     print_error("when execute", &error);
 }
 
-module_t* create_module(hdata_t code, index_t entry)
+module_t* create_module(hdata_t code, index_t entry, herror_t* perror)
 {
     module_t* module;
 
     module = malloc(sizeof(*module));
+    if (module == NULL) {
+        *perror = E_OUTOFMEMORY;
+        return NULL;
+    }
     module->code = code;
     module->entry = entry;
-    module->permissions.arrays = malloc(ARRAYS_PER_PAGE*sizeof(*(module->permissions.arrays)));
     module->permissions.descr = malloc(ARRAYS_PER_PAGE*sizeof(*(module->permissions.descr)));
+    if (module->permissions.descr == NULL) {
+        *perror = E_OUTOFMEMORY;
+        return NULL;
+    }
     module->permissions.next = NULL;
 
     return module;
+}
+
+void destroy_module(module_t* module, herror_t* perror)
+{
+    permissions_t* permissions;
+    permissions_t* temp;
+
+    permissions = module->permissions->next;
+    while (permissions) {
+        temp = permissions;
+        permissions = permissions->next;
+        free(temp->descr);
+        free(temp);
+    }
+    free(module->permissions.descr);
+    destroy_array(module->code, perror);
+    if (*perror != E_NONE) {
+        return;
+    }
+    free(module);
+}
+
+sword_t get_permission(module_t* module, hdata_t array, herror_t* perror)
+{
+    
 }

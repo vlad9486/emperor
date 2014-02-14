@@ -9,6 +9,22 @@
  * threads
  */
 
+#define ARRAYS_PER_PAGE 0x400
+
+typedef struct permissions_tag {
+    hdata_t* arrays;
+    sword_t* descr;
+    struct permissions_tag* next;
+    sword_t number;
+    sword_t deepness;
+} permissions_t;
+
+typedef struct module_tag {
+    hdata_t code;
+    index_t entry;
+    permissions_t permissions;
+} module_t;
+
 herror_t error;
 hdata_t main_module;
 
@@ -20,6 +36,7 @@ const char* error_descr[] = {
     "\"out of memory\"",
     "\"invalid pointer\"",
     "\"access is forbidden\"",
+    "\"division by zero\"",
 };
 
 void print_error(const char* msg, herror_t* perror)
@@ -52,4 +69,18 @@ void loop()
     flags = 0;
     execute_code(main_module, 0, &error);
     print_error("when execute", &error);
+}
+
+module_t* create_module(hdata_t code, index_t entry)
+{
+    module_t* module;
+
+    module = malloc(sizeof(*module));
+    module->code = code;
+    module->entry = entry;
+    module->permissions.arrays = malloc(ARRAYS_PER_PAGE*sizeof(*(module->permissions.arrays)));
+    module->permissions.descr = malloc(ARRAYS_PER_PAGE*sizeof(*(module->permissions.descr)));
+    module->permissions.next = NULL;
+
+    return module;
 }

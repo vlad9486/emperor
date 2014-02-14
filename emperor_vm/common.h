@@ -7,6 +7,7 @@
 #define E_OUTOFMEMORY       0x00000001
 #define E_INVALIDPTR        0x00000002
 #define E_ACCESSFORBIDDEN   0x00000003
+#define E_DIVBYZERO         0x00000004
 
 #define FALSE 0
 #define TRUE 1

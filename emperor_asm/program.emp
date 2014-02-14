@@ -1,13 +1,13 @@
-self r4
+self r4_0
 lit 0028 r5
-lit 0000 r2
-lit 0005 r6
+lit 0000 r2_000
+lit 0005 r6_000
 lip 0004 r3
-; arguments in 04_i, 05_l
+; arguments in r4, r5
 system 00
-inc r2 r2
-cmp r2 r6
-lgoto r4 r3
+inc r2_000 r2_000
+cmp r2_000 r6_000
+lgoto r4_0 r3
 stk
 
 data 6c6c6568

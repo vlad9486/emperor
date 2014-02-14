@@ -17,6 +17,10 @@ void write_qword(hdata_t data, index_t index, qword_t word, herror_t* perror);
 qword_t read_qword(hdata_t data, index_t index, herror_t* perror);
 void write_dword(hdata_t data, index_t index, dword_t word, herror_t* perror);
 dword_t read_dword(hdata_t data, index_t index, herror_t* perror);
+void write_sword(hdata_t data, index_t index, sword_t word, herror_t* perror);
+sword_t read_sword(hdata_t data, index_t index, herror_t* perror);
+void write_hword(hdata_t data, index_t index, hword_t word, herror_t* perror);
+hword_t read_hword(hdata_t data, index_t index, herror_t* perror);
 /* get the size of the array */
 index_t get_size(hdata_t data, herror_t* perror);
 /* get the pointer to the array, unsafe */

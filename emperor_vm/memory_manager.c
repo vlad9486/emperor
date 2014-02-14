@@ -335,6 +335,82 @@ dword_t read_dword(hdata_t data, index_t index, herror_t* perror)
     return array[index * SIZE_KOEF / sizeof(*array)];
 }
 
+void write_sword(hdata_t data, index_t index, sword_t word, herror_t* perror)
+{
+    leaf_t* ptr;
+    sword_t* array;
+
+    ptr = resolve_conformity(data, perror);
+    if (*perror != E_NONE) {
+        return;
+    }
+
+    if (index >= ptr->size) {
+        *perror = E_ACCESSFORBIDDEN;
+        return;
+    }
+
+    array = (sword_t*)&(ptr->data);
+    array[index * SIZE_KOEF / sizeof(*array)] = word;
+}
+
+sword_t read_sword(hdata_t data, index_t index, herror_t* perror)
+{
+    leaf_t* ptr;
+    sword_t* array;
+
+    ptr = resolve_conformity(data, perror);
+    if (*perror != E_NONE) {
+        return 0;
+    }
+
+    if (index >= ptr->size) {
+        *perror = E_ACCESSFORBIDDEN;
+        return 0;
+    }
+
+    array = (sword_t*)&(ptr->data);
+    return array[index * SIZE_KOEF / sizeof(*array)];
+}
+
+void write_hword(hdata_t data, index_t index, hword_t word, herror_t* perror)
+{
+    leaf_t* ptr;
+    hword_t* array;
+
+    ptr = resolve_conformity(data, perror);
+    if (*perror != E_NONE) {
+        return;
+    }
+
+    if (index >= ptr->size) {
+        *perror = E_ACCESSFORBIDDEN;
+        return;
+    }
+
+    array = (hword_t*)&(ptr->data);
+    array[index * SIZE_KOEF / sizeof(*array)] = word;
+}
+
+hword_t read_hword(hdata_t data, index_t index, herror_t* perror)
+{
+    leaf_t* ptr;
+    hword_t* array;
+
+    ptr = resolve_conformity(data, perror);
+    if (*perror != E_NONE) {
+        return 0;
+    }
+
+    if (index >= ptr->size) {
+        *perror = E_ACCESSFORBIDDEN;
+        return 0;
+    }
+
+    array = (hword_t*)&(ptr->data);
+    return array[index * SIZE_KOEF / sizeof(*array)];
+}
+
 index_t get_size(hdata_t data, herror_t* perror)
 {
     leaf_t* ptr;

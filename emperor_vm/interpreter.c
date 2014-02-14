@@ -5,11 +5,10 @@
 #include "interpreter.h"
 
 /* TODO:
- * instructions cache 
  * implement more system calls
  * optimize execute_code! that code is horrible
- * handling errors
  * floating point operation
+ * access approval checking
  */
 
 extern hdata_t main_module;
@@ -24,13 +23,13 @@ static inline qword_t read_reg(hword_t reg)
         return registry_file->regs[reg >> 4];
     }
     else if ((reg & 0xc) == 0xc) {
-        return registry_file->regs[reg >> 4] >> (8 * sizeof(dword_t) * (reg & 1));
+        return (registry_file->regs[reg >> 4] >> (8 * sizeof(dword_t) * (reg & 1))) & 0xffffffff;
     }
     else if ((reg & 0x8) == 0x8) {
-        return registry_file->regs[reg >> 4] >> (8 * sizeof(sword_t) * (reg & 3));
+        return (registry_file->regs[reg >> 4] >> (8 * sizeof(sword_t) * (reg & 3))) & 0xffff;
     }
     else {
-        return registry_file->regs[reg >> 4] >> (8 * sizeof(hword_t) * (reg & 7));
+        return (registry_file->regs[reg >> 4] >> (8 * sizeof(hword_t) * (reg & 7))) & 0xff;
     }
 }
 
@@ -59,6 +58,11 @@ static inline void write_reg(hword_t reg, qword_t word)
 
 void execute_code(hdata_t code, index_t pos, herror_t* perror)
 {
+    qword_t qtemp;
+    dword_t dtemp;
+    sword_t stemp;
+    hword_t htemp;
+    dword_t array;
     dword_t command;
     hword_t op;
     hword_t a;
@@ -67,6 +71,9 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
 
     while ((flags & 0x8) == 0) {
         command = read_dword(code, pos, perror);
+        if (*perror != E_NONE) {
+            return;
+        }
         op = command >> 24;
         a = command >> 16;
         b = command >> 8;
@@ -98,10 +105,20 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
             write_reg(c, read_reg(a) * read_reg(b));
         }
         else if (op == 0x07) {
-            write_reg(c, read_reg(a) / read_reg(b));
+            qtemp = read_reg(b);
+            if (qtemp == 0) {
+                *perror = E_DIVBYZERO;
+                return;
+            }
+            write_reg(c, read_reg(a) / qtemp);
         }
         else if (op == 0x08) {
-            write_reg(c, read_reg(a) % read_reg(b));
+            qtemp = read_reg(b);
+            if (qtemp == 0) {
+                *perror = E_DIVBYZERO;
+                return;
+            }
+            write_reg(c, read_reg(a) % qtemp);
         }
         else if (op == 0x09) {
             write_reg(c, read_reg(a) & read_reg(b));
@@ -168,26 +185,84 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
             flags |= 0x8;
         }
 
+        /* code must be verified */
         else if (op == 0x28) {
-            write_reg(b, create_array(read_reg(a), perror));
+            /*write_reg(b, create_array(read_reg(a), perror));*/
+            array = create_array(read_reg(a), perror);
+            ((dword_t*)(&(registry_file->regs[b >> 4])))[b & 1] = array;
+            if (*perror != E_NONE) {
+                return;
+            }
         }
         else if (op == 0x29) {
-            destroy_array(read_reg(a), perror);
+            /*destroy_array(read_reg(a), perror);*/
+            array = registry_file->regs[a >> 4] >> (8 * sizeof(dword_t) * (a & 1));
+            destroy_array(array, perror);
+            if (*perror != E_NONE) {
+                return;
+            }
         }
         else if (op == 0x2a) {
-            write_reg(b, get_size(read_reg(a), perror));
+            /*write_reg(b, get_size(read_reg(a), perror));*/
+            array = registry_file->regs[a >> 4] >> (8 * sizeof(dword_t) * (a & 1));
+            write_reg(b, get_size(array, perror));
+            if (*perror != E_NONE) {
+                return;
+            }
         }
         else if (op == 0x2b) {
-            write_reg(a, code);
+            /*write_reg(a, code);*/
+            ((dword_t*)(&(registry_file->regs[a >> 4])))[a & 1] = code;
         }
         else if (op == 0x2c) {
-            /**/
+            array = registry_file->regs[b >> 4] >> (8 * sizeof(dword_t) * (b & 1));
+            if ((a & 0xf) == 0xe) {
+                qtemp = registry_file->regs[a >> 4];
+                write_qword(array, read_reg(c), qtemp, perror);
+            }
+            else if ((a & 0xc) == 0xc) {
+                dtemp = (registry_file->regs[a >> 4] >> (8 * sizeof(dword_t) * (a & 1))) & 0xffffffff;
+                write_dword(array, read_reg(c), dtemp, perror);
+            }
+            else if ((a & 0x8) == 0x8) {
+                stemp = (registry_file->regs[a >> 4] >> (8 * sizeof(sword_t) * (a & 3))) & 0xffff;
+                write_sword(array, read_reg(c), stemp, perror);
+            }
+            else {
+                htemp = (registry_file->regs[a >> 4] >> (8 * sizeof(hword_t) * (a & 7))) & 0xff;
+                write_hword(array, read_reg(c), htemp, perror);
+            }
+            if (*perror != E_NONE) {
+                return;
+            }
         }
         else if (op == 0x2d) {
-            /**/
+            array = registry_file->regs[a >> 4] >> (8 * sizeof(dword_t) * (a & 1));
+            if ((c & 0xf) == 0xe) {
+                qtemp = read_hword(array, read_reg(b), perror);
+                registry_file->regs[c >> 4] = qtemp;
+            }
+            else if ((c & 0xc) == 0xc) {
+                dtemp = read_dword(array, read_reg(b), perror);
+                ((dword_t*)(&(registry_file->regs[c >> 4])))[c & 1] = dtemp;
+            }
+            else if ((c & 0x8) == 0x8) {
+                stemp = read_sword(array, read_reg(b), perror);
+                ((sword_t*)(&(registry_file->regs[c >> 4])))[c & 3] = stemp;
+            }
+            else {
+                htemp = read_hword(array, read_reg(b), perror);
+                ((hword_t*)(&(registry_file->regs[c >> 4])))[c & 7] = htemp;
+            }
+            if (*perror != E_NONE) {
+                return;
+            }
         }
         else if (op == 0x2e) {
             syscall(a, read_reg(0x40), read_reg(0x50), perror);
+            if (*perror != E_NONE) {
+                return;
+            }
         }
         else if (op == 0x2f) {
             /**/
@@ -195,7 +270,7 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
 
         if ((op & 0x38) == 0x30) {
             if ((op == 0x30) || ((flags & 0x7) & (op & 0x7))) {
-                code = read_reg(a);
+                code = registry_file->regs[a >> 4] >> (8 * sizeof(dword_t) * (a & 1));
                 pos = read_reg(b);
                 continue;
             }
@@ -207,14 +282,16 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
 
 void syscall(uint64_t a, uint64_t b, uint64_t c, herror_t* perror)
 {
+    /* TODO: 
+     * implement more system calls 
+     * get rid of unsafe
+     */
     hword_t* ptr;
+
     if (a == 0) {
         ptr = get_pointer_unsafe(b, perror);
         ptr += c;
         printf("%s\n", ptr);
     }
-    /* TODO: 
-     * implement more system calls 
-     * rewrite this syscall to get rid of unsafe
-     */
+    
 }

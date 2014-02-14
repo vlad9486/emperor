@@ -83,7 +83,7 @@ void destroy_module(module_t* module, herror_t* perror)
     permissions_t* permissions;
     permissions_t* temp;
 
-    permissions = module->permissions->next;
+    permissions = module->permissions.next;
     while (permissions) {
         temp = permissions;
         permissions = permissions->next;

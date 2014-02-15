@@ -9,10 +9,11 @@
  * threads
  */
 
-#define ARRAYS_PER_PAGE 0x10000
+#define BIT_PER_PAGE 16
+#define ARRAYS_PER_PAGE (1 << BIT_PER_PAGE)
 
 herror_t error;
-hdata_t main_module;
+module_t* main_module;
 
 registry_file_t* registry_file;
 char flags;
@@ -37,15 +38,24 @@ void print_error(const char* msg, herror_t* perror)
 
 void initialize_vm(const char* fn)
 {
+    hdata_t main_code;
+    hpermission_t* permission;
+
     registry_file = malloc(sizeof(registry_file_t));
     memset(registry_file, 0, sizeof(*registry_file));
-    main_module = bind_file(fn, &error);
-    print_error("when loading module", &error);
+    main_code = bind_file(fn, &error);
+    print_error("when loading main_code", &error);
+    main_module = create_module(main_code, 0, &error);
+    print_error("when creating main_module", &error);
+    permission = get_permission(main_module, main_code, &error);
+    print_error("when ask access to permission table", &error);
+    *permission |= P_READ | P_READ_TRANSIT | 
+        P_WRITE | P_WRITE_TRANSIT | P_EXECUTE | P_EXECUTE_TRANSIT;
 }
 
 void finalize_vm()
 {
-    destroy_array(main_module, &error);
+    destroy_module(main_module, &error);
     print_error("when deleting main_module", &error);
     free(registry_file);
 }
@@ -53,7 +63,7 @@ void finalize_vm()
 void loop()
 {
     flags = 0;
-    execute_code(main_module, 0, &error);
+    execute_code(main_module, &error);
     print_error("when execute", &error);
 }
 
@@ -87,7 +97,9 @@ void destroy_module(module_t* module, herror_t* perror)
     while (permissions) {
         temp = permissions;
         permissions = permissions->next;
-        free(temp->descr);
+        if (temp->descr != NULL) {
+            free(temp->descr);
+        }
         free(temp);
     }
     free(module->permissions.descr);
@@ -98,7 +110,32 @@ void destroy_module(module_t* module, herror_t* perror)
     free(module);
 }
 
-sword_t get_permission(module_t* module, hdata_t array, herror_t* perror)
+hpermission_t* get_permission(module_t* module, hdata_t array, herror_t* perror)
 {
-    
+    dword_t head;
+    dword_t tail;
+    permissions_t* page;
+
+    head = array & (ARRAYS_PER_PAGE-1);
+    tail = array >> BIT_PER_PAGE;
+
+    page = &(module->permissions);
+    while (tail != 0) {
+        if (page->next == NULL) {
+            page->next = malloc(sizeof(*page));
+            if (page->next == NULL) {
+                *perror = E_OUTOFMEMORY;
+                return NULL;
+            }
+            page->next->descr = malloc(ARRAYS_PER_PAGE*sizeof(*(module->permissions.descr)));
+            if (module->permissions.descr == NULL) {
+                *perror = E_OUTOFMEMORY;
+                return NULL;
+            }
+        }
+        page = page->next;
+        tail--;
+    }
+
+    return &(page->descr[head]);
 }

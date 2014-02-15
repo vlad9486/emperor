@@ -8,10 +8,37 @@
  * implement more system calls
  * optimize execute_code! that code is horrible
  * floating point operation
- * access approval checking
  */
 
-extern hdata_t main_module;
+#define CHECK_ANY_ERROR \
+    if (*perror != E_NONE) {\
+        return;\
+    }
+
+#define CHECK_READ_PERMISSION(m, a) \
+    permission = get_permission(m, a, perror);\
+    CHECK_ANY_ERROR\
+    if ((*permission & P_READ) == 0) {\
+        *perror = E_READ_FORBIDDEN;\
+        return;\
+    }
+
+#define CHECK_WRITE_PERMISSION(m, a) \
+    permission = get_permission(m, a, perror);\
+    CHECK_ANY_ERROR\
+    if ((*permission & P_WRITE) == 0) {\
+        *perror = E_WRITE_FORBIDDEN;\
+        return;\
+    }
+
+#define CHECK_EXECUTE_PERMISSION(m, a) \
+    permission = get_permission(m, a, perror);\
+    CHECK_ANY_ERROR\
+    if ((*permission & P_EXECUTE) == 0) {\
+        *perror = E_EXECUTE_FORBIDDEN;\
+        return;\
+    }
+
 extern registry_file_t* registry_file;
 extern char flags;
 
@@ -56,8 +83,11 @@ static inline void write_reg(hword_t reg, qword_t word)
     }
 }
 
-void execute_code(hdata_t code, index_t pos, herror_t* perror)
+void execute_code(module_t* module, herror_t* perror)
 {
+    hdata_t code;
+    index_t pos;
+    hpermission_t* permission;
     qword_t qtemp;
     dword_t dtemp;
     sword_t stemp;
@@ -69,11 +99,11 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
     hword_t b;
     hword_t c;
 
+    code = module->code;
+    pos = module->entry;
     while ((flags & 0x8) == 0) {
         command = read_dword(code, pos, perror);
-        if (*perror != E_NONE) {
-            return;
-        }
+        CHECK_ANY_ERROR
         op = command >> 24;
         a = command >> 16;
         b = command >> 8;
@@ -190,25 +220,24 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
             /*write_reg(b, create_array(read_reg(a), perror));*/
             array = create_array(read_reg(a), perror);
             ((dword_t*)(&(registry_file->regs[b >> 4])))[b & 1] = array;
-            if (*perror != E_NONE) {
-                return;
-            }
+            CHECK_ANY_ERROR
+            permission = get_permission(module, array, perror);
+            CHECK_ANY_ERROR
+            *permission = P_READ | P_READ_TRANSIT | P_WRITE | P_WRITE_TRANSIT;
         }
         else if (op == 0x29) {
             /*destroy_array(read_reg(a), perror);*/
             array = registry_file->regs[a >> 4] >> (8 * sizeof(dword_t) * (a & 1));
+            CHECK_WRITE_PERMISSION(module, array)
             destroy_array(array, perror);
-            if (*perror != E_NONE) {
-                return;
-            }
+            CHECK_ANY_ERROR
         }
         else if (op == 0x2a) {
             /*write_reg(b, get_size(read_reg(a), perror));*/
             array = registry_file->regs[a >> 4] >> (8 * sizeof(dword_t) * (a & 1));
+            CHECK_READ_PERMISSION(module, array)
             write_reg(b, get_size(array, perror));
-            if (*perror != E_NONE) {
-                return;
-            }
+            CHECK_ANY_ERROR
         }
         else if (op == 0x2b) {
             /*write_reg(a, code);*/
@@ -216,6 +245,7 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
         }
         else if (op == 0x2c) {
             array = registry_file->regs[b >> 4] >> (8 * sizeof(dword_t) * (b & 1));
+            CHECK_WRITE_PERMISSION(module, array)
             if ((a & 0xf) == 0xe) {
                 qtemp = registry_file->regs[a >> 4];
                 write_qword(array, read_reg(c), qtemp, perror);
@@ -232,12 +262,11 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
                 htemp = (registry_file->regs[a >> 4] >> (8 * sizeof(hword_t) * (a & 7))) & 0xff;
                 write_hword(array, read_reg(c), htemp, perror);
             }
-            if (*perror != E_NONE) {
-                return;
-            }
+            CHECK_ANY_ERROR
         }
         else if (op == 0x2d) {
             array = registry_file->regs[a >> 4] >> (8 * sizeof(dword_t) * (a & 1));
+            CHECK_READ_PERMISSION(module, array)
             if ((c & 0xf) == 0xe) {
                 qtemp = read_hword(array, read_reg(b), perror);
                 registry_file->regs[c >> 4] = qtemp;
@@ -254,15 +283,11 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
                 htemp = read_hword(array, read_reg(b), perror);
                 ((hword_t*)(&(registry_file->regs[c >> 4])))[c & 7] = htemp;
             }
-            if (*perror != E_NONE) {
-                return;
-            }
+            CHECK_ANY_ERROR
         }
         else if (op == 0x2e) {
-            syscall(a, read_reg(0x40), read_reg(0x50), perror);
-            if (*perror != E_NONE) {
-                return;
-            }
+            syscall(a, read_reg(0x4e), read_reg(0x5e), perror);
+            CHECK_ANY_ERROR
         }
         else if (op == 0x2f) {
             /**/
@@ -271,6 +296,7 @@ void execute_code(hdata_t code, index_t pos, herror_t* perror)
         if ((op & 0x38) == 0x30) {
             if ((op == 0x30) || ((flags & 0x7) & (op & 0x7))) {
                 code = registry_file->regs[a >> 4] >> (8 * sizeof(dword_t) * (a & 1));
+                CHECK_EXECUTE_PERMISSION(module, code)
                 pos = read_reg(b);
                 continue;
             }
@@ -293,5 +319,4 @@ void syscall(uint64_t a, uint64_t b, uint64_t c, herror_t* perror)
         ptr += c;
         printf("%s\n", ptr);
     }
-    
 }

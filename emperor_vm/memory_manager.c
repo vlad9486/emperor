@@ -27,13 +27,12 @@ table_t* create_table(herror_t* perror)
 
     res = malloc(sizeof(*res));
     if (res == 0) {
-        *perror = E_OUTOFMEMORY;
+        *perror = E_MM_OUTOFMEMORY;
         return 0;
     }
     memset(res, 0, sizeof(*res));
     /*res->size = sizeof(*res) * SIZE_KOEF;*/
     res->header = 0;
-    *perror = E_NONE;
 
     return res;
 }
@@ -41,7 +40,6 @@ table_t* create_table(herror_t* perror)
 void free_table(table_t* table, herror_t* perror)
 {
     free(table);
-    *perror = 0;
 }
 
 table_t* links_4 = 0;
@@ -54,7 +52,8 @@ bool_t try_to_create_node(hdata_t* data, table_t** table, leaf_t* ptr,
 
     if (*table == 0) {
         *table = create_table(perror);
-        if (*perror != E_NONE) {
+        if (*perror != E__NONE) {
+            *perror |= E_MM_DISKOPERATION;
             return FALSE;
         }
     }
@@ -76,7 +75,8 @@ bool_t try_to_create_node(hdata_t* data, table_t** table, leaf_t* ptr,
         else {
             condition = try_to_create_node(data, &((*table)->nodes[i]), ptr,
                 level - 1, perror);
-            if (*perror != E_NONE) {
+            if (*perror != E__NONE) {
+            *perror |= E_MM_DISKOPERATION;
                 return FALSE;
             }
             if (condition) {
@@ -98,14 +98,14 @@ hdata_t alloc_handle(leaf_t* ptr, herror_t* perror)
 
     res = 0;
     condition = try_to_create_node(&res, &links_4, ptr, LEVELS_NUMBER-1, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
         return 0;
     }
     if (condition) {
         return res;
     }
     else {
-        *perror = E_OUTOFMEMORY;
+        *perror = E_MM_OUTOFMEMORY;
         return 0;
     }
 }
@@ -122,7 +122,7 @@ leaf_t* free_handle(hdata_t data, herror_t* perror)
     i = LEVELS_NUMBER;
     while (i != 0) {
         if (*(temp[i]) == 0) {
-            *perror = E_INVALIDPTR;
+            *perror = E_MM_INVALIDPTR;
             return 0;
         }
         index = (data >> ((i - 1) * BIT_PER_LEVEL)) & (NODES_NUMBER - 1);
@@ -157,7 +157,7 @@ leaf_t* resolve_conformity(hdata_t data, herror_t* perror)
     i = LEVELS_NUMBER;
     while (i != 0) {
         if (table == 0) {
-            *perror = E_INVALIDPTR;
+            *perror = E_MM_INVALIDPTR;
             return 0;
         }
         index = (data >> ((i-1)*BIT_PER_LEVEL)) & (NODES_NUMBER-1);
@@ -204,11 +204,13 @@ hdata_t bind_file(const char* fn, herror_t* perror)
     k = byte_size % sizeof(*ptr);
     size = byte_size / sizeof(*ptr);
     data = create_array(byte_size / SIZE_KOEF, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
+        *perror |= E_I_CREATEARRAY;
         return 0;
     }
     ptr = get_pointer_unsafe(data, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
+        *perror |= E_I_ACCESSARRAY;
         return 0;
     }
     fread(ptr, byte_size, 1, file);
@@ -231,14 +233,14 @@ hdata_t create_array(esize_t size, herror_t* perror)
 
     ptr = malloc(size * SIZE_KOEF + sizeof(esize_t));
     if (ptr == 0) {
-        *perror = E_OUTOFMEMORY;
+        *perror = E_MM_OUTOFMEMORY;
         return 0;
     }
     ptr->size = size;
     memset(&(ptr->data), 0, size * SIZE_KOEF);
 
     res = alloc_handle(ptr, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
         return 0;
     }
     printf("[LOG]: created %d, 0x%x\n", res, ptr);
@@ -251,7 +253,8 @@ void destroy_array(hdata_t data, herror_t* perror)
     leaf_t* ptr;
 
     ptr = free_handle(data, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
+        *perror |= E_MM_INVALIDPTR;
         return;
     }
     printf("[LOG]: deleted %d, 0x%x\n", data, ptr);
@@ -265,12 +268,12 @@ void write_qword(hdata_t data, index_t index, qword_t word, herror_t* perror)
     qword_t* array;
 
     ptr = resolve_conformity(data, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
         return;
     }
 
     if (index >= ptr->size) {
-        *perror = E_ACCESSFORBIDDEN;
+        *perror = E_MM_OUTOFDOMAIN;
         return;
     }
 
@@ -284,12 +287,12 @@ qword_t read_qword(hdata_t data, index_t index, herror_t* perror)
     qword_t* array;
 
     ptr = resolve_conformity(data, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
         return 0;
     }
 
     if (index >= ptr->size) {
-        *perror = E_ACCESSFORBIDDEN;
+        *perror = E_MM_OUTOFDOMAIN;
         return 0;
     }
 
@@ -303,12 +306,12 @@ void write_dword(hdata_t data, index_t index, dword_t word, herror_t* perror)
     dword_t* array;
 
     ptr = resolve_conformity(data, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
         return;
     }
 
     if (index >= ptr->size) {
-        *perror = E_ACCESSFORBIDDEN;
+        *perror = E_MM_OUTOFDOMAIN;
         return;
     }
 
@@ -322,12 +325,12 @@ dword_t read_dword(hdata_t data, index_t index, herror_t* perror)
     dword_t* array;
 
     ptr = resolve_conformity(data, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
         return 0;
     }
 
     if (index >= ptr->size) {
-        *perror = E_ACCESSFORBIDDEN;
+        *perror = E_MM_OUTOFDOMAIN;
         return 0;
     }
 
@@ -341,12 +344,12 @@ void write_sword(hdata_t data, index_t index, sword_t word, herror_t* perror)
     sword_t* array;
 
     ptr = resolve_conformity(data, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
         return;
     }
 
     if (index >= ptr->size) {
-        *perror = E_ACCESSFORBIDDEN;
+        *perror = E_MM_OUTOFDOMAIN;
         return;
     }
 
@@ -360,12 +363,12 @@ sword_t read_sword(hdata_t data, index_t index, herror_t* perror)
     sword_t* array;
 
     ptr = resolve_conformity(data, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
         return 0;
     }
 
     if (index >= ptr->size) {
-        *perror = E_ACCESSFORBIDDEN;
+        *perror = E_MM_OUTOFDOMAIN;
         return 0;
     }
 
@@ -379,12 +382,12 @@ void write_hword(hdata_t data, index_t index, hword_t word, herror_t* perror)
     hword_t* array;
 
     ptr = resolve_conformity(data, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
         return;
     }
 
     if (index >= ptr->size) {
-        *perror = E_ACCESSFORBIDDEN;
+        *perror = E_MM_OUTOFDOMAIN;
         return;
     }
 
@@ -398,12 +401,12 @@ hword_t read_hword(hdata_t data, index_t index, herror_t* perror)
     hword_t* array;
 
     ptr = resolve_conformity(data, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
         return 0;
     }
 
     if (index >= ptr->size) {
-        *perror = E_ACCESSFORBIDDEN;
+        *perror = E_MM_OUTOFDOMAIN;
         return 0;
     }
 
@@ -416,7 +419,7 @@ index_t get_size(hdata_t data, herror_t* perror)
     leaf_t* ptr;
 
     ptr = resolve_conformity(data, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
         return 0;
     }
 
@@ -428,7 +431,7 @@ void* get_pointer_unsafe(hdata_t data, herror_t* perror)
     leaf_t* ptr;
 
     ptr = resolve_conformity(data, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
         return 0;
     }
 

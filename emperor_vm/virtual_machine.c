@@ -18,21 +18,13 @@ module_t* main_module;
 registry_file_t* registry_file;
 char flags;
 
-const char* error_descr[] = {
-    "\"no error\"",
-    "\"out of memory\"",
-    "\"invalid pointer\"",
-    "\"access is forbidden\"",
-    "\"division by zero\"",
-};
-
 void print_error(const char* msg, herror_t* perror)
 {
-    if (*perror == E_NONE) {
+    if (*perror == E__NONE) {
         return;
     }
     else {
-        printf("[ERROR]: %s %s\n", error_descr[*perror], msg);
+        printf("[ERROR]: %x %s\n", *perror, msg);
     }
 }
 
@@ -73,14 +65,14 @@ module_t* create_module(hdata_t code, index_t entry, herror_t* perror)
 
     module = malloc(sizeof(*module));
     if (module == NULL) {
-        *perror = E_OUTOFMEMORY;
+        *perror = E_MM_OUTOFMEMORY;
         return NULL;
     }
     module->code = code;
     module->entry = entry;
     module->permissions.descr = malloc(ARRAYS_PER_PAGE*sizeof(*(module->permissions.descr)));
     if (module->permissions.descr == NULL) {
-        *perror = E_OUTOFMEMORY;
+        *perror = E_MM_OUTOFMEMORY;
         return NULL;
     }
     module->permissions.next = NULL;
@@ -104,7 +96,8 @@ void destroy_module(module_t* module, herror_t* perror)
     }
     free(module->permissions.descr);
     destroy_array(module->code, perror);
-    if (*perror != E_NONE) {
+    if (*perror != E__NONE) {
+        *perror |= E_I_ACCESSARRAY;
         return;
     }
     free(module);
@@ -124,12 +117,12 @@ hpermission_t* get_permission(module_t* module, hdata_t array, herror_t* perror)
         if (page->next == NULL) {
             page->next = malloc(sizeof(*page));
             if (page->next == NULL) {
-                *perror = E_OUTOFMEMORY;
+                *perror = E_MM_OUTOFMEMORY;
                 return NULL;
             }
             page->next->descr = malloc(ARRAYS_PER_PAGE*sizeof(*(module->permissions.descr)));
             if (module->permissions.descr == NULL) {
-                *perror = E_OUTOFMEMORY;
+                *perror = E_MM_OUTOFMEMORY;
                 return NULL;
             }
         }

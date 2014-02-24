@@ -1,7 +1,7 @@
 
 /************************************************
-    the assembler for the emperor project
-    vlad9486, 18.01.2014
+ *  the assembler for the emperor project
+ *  vlad9486, 18.01.2014
  ************************************************/
 
 #include <stdlib.h>
@@ -126,6 +126,7 @@ int main(int argc, char* argv[])
 
     if (argc < 3) {
         printf("too few parameters\n");
+        return EXIT_FAILURE;
     }
     input = fopen(argv[1], "rb");
     fseek(input, 0, SEEK_END);

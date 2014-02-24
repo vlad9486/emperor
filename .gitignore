@@ -2,3 +2,5 @@
 /emperor_asm/dist/
 /emperor_vm/build/
 /emperor_vm/dist/
+/emperor_cisar/build/
+/emperor_cisar/dist/

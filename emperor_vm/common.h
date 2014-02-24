@@ -3,16 +3,6 @@
 
 #include <stdint.h>
 
-/*#define E_NONE              0x00000000
-#define E_OUTOFMEMORY       0x00000001
-#define E_INVALIDPTR        0x00000002
-#define E_ACCESSFORBIDDEN   0x00000003
-#define E_DIVBYZERO         0x00000004
-#define E_READ_FORBIDDEN    0x00000005
-#define E_WRITE_FORBIDDEN   0x00000006
-#define E_EXECUTE_FORBIDDEN 0x00000007*/
-
-
 #define E__NONE                 0x00000000
 
 #define E_MM_OUTOFMEMORY        0x00000001

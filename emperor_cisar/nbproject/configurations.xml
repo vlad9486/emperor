@@ -26,6 +26,8 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
     <itemPath>common.h</itemPath>
+    <itemPath>dictionary.c</itemPath>
+    <itemPath>dictionary.h</itemPath>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -38,6 +40,10 @@
       <compileType>
       </compileType>
       <item path="common.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="dictionary.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="dictionary.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -63,6 +69,10 @@
         </asmTool>
       </compileType>
       <item path="common.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="dictionary.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="dictionary.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>

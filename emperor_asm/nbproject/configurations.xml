@@ -6,7 +6,6 @@
                    projectFiles="true">
       <itemPath>asm.h</itemPath>
       <itemPath>common.h</itemPath>
-      <itemPath>dictionary.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -16,7 +15,6 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>asm.c</itemPath>
-      <itemPath>dictionary.c</itemPath>
       <itemPath>main.c</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -49,10 +47,6 @@
       </item>
       <item path="common.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="dictionary.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="dictionary.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>
     </conf>
@@ -81,10 +75,6 @@
       <item path="asm.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="common.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="dictionary.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="dictionary.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>

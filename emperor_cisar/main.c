@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void translate(FILE* input, FILE* output)
+void translate(char* data, esize_t size, FILE* output)
 {
     
 }
@@ -17,6 +17,8 @@ int main(int argc, char** argv)
 {
     FILE* input;
     FILE* output;
+    char* data;
+    esize_t size;
 
     if (argc < 3) {
         printf("[ERROR]: too few parameters\n");
@@ -24,9 +26,16 @@ int main(int argc, char** argv)
     }
 
     input = fopen(argv[1], "rt");
-    output = fopen(argv[2], "wb");
-    translate(input, output);
+    fseek(input, 0, SEEK_END);
+    size = ftell(input);
+    rewind(input);
+    data = malloc(size);
+    fread(data, size, 1, input);
     fclose(input);
+
+    output = fopen(argv[2], "wb");
+    translate(data, size, output);
+    free(data);
     fclose(output);
 
     return EXIT_SUCCESS;

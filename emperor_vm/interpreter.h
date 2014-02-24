@@ -2,7 +2,8 @@
 #define	INTERPRETER_H
 
 #include "common.h"
+#include "virtual_machine.h"
 
-void execute_code(hdata_t code, index_t pos, herror_t* perror);
+void execute_code(module_t* module, herror_t* perror);
 
 #endif	/* INTERPRETER_H */

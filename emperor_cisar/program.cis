@@ -1,15 +1,15 @@
 module hello;
 using system;
 
-immutable int n = 5;
-immutable data msg = "hello, world"0x0a;
+u32 n = 5;
+c8[] msg = "hello, world\n";
 
-func main = (out int result) {
+func(out u64 result, in c8[] arg) main {
 
-    int i = 0;
+    u32 i = 0;
     while (i < n) {
         printf(msg);
-        i := i + 1;
+        i = i + 1i;
     };
-    result := 0;
+    result = 0i;
 };

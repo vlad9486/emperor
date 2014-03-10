@@ -25,6 +25,7 @@
       <runprofile version="9">
         <runcommandpicklist>
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" ../emperor_asm/program.b ../emperor_asm/program.b</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" ../emperor_asm/program.b</runcommandpicklistitem>
         </runcommandpicklist>
         <runcommand>"${OUTPUT_PATH}" ../emperor_asm/program.b</runcommand>

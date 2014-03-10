@@ -1,15 +1,25 @@
-module hello;
-using system;
+module hello
 
-u32 n = 5;
-c8[] msg = "hello, world\n";
+using
+    system;
 
-func(out u64 result, in c8[] arg) main {
+const
+    n = 5i;
 
-    u32 i = 0;
-    while (i < n) {
-        printf(msg);
-        i = i + 1i;
-    };
-    result = 0i;
-};
+func main
+var
+    out int result;
+    in char[] cline;
+    int i;
+do
+    i := 0i;
+    while (i < n)
+        printf("hello, world\n");
+        i := i + 1i;
+    end
+    result := n - i;
+end
+
+end
+
+/*module, using, end, func, do, var, const, if, while*/

@@ -1,6 +1,8 @@
 #ifndef COMMON_H
 #define	COMMON_H
 
+#include <stdint.h>
+
 //#define NULL 0
 #define TRUE 1
 #define FALSE 0
@@ -10,4 +12,3 @@ typedef uint64_t esize_t;
 typedef uint32_t herror_t;
 
 #endif	/* COMMON_H */
-

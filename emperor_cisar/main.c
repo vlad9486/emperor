@@ -7,10 +7,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "common.h"
+#include "syntax_tree.h"
 
 void translate(char* data, esize_t size, FILE* output)
 {
-    
+    herror_t error;
+    struct syntax_node_t* tree;
+
+    tree = make_tree(data, size, &error);
+    delete_tree(tree);
 }
 
 int main(int argc, char** argv)

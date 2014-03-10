@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-struct dict_entry_t {
+typedef struct dict_entry_t {
     void* data;
     struct dict_entry_t* next;
     struct dict_entry_t* prev;

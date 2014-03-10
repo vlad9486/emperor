@@ -22,4 +22,4 @@ end
 
 end
 
-/*module, using, end, func, do, var, const, if, while*/
+/*module, using, func, do, var, const, if, while, type, enum, struct, end*/

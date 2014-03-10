@@ -11,8 +11,8 @@
 #include "dictionary.h"
 
 typedef enum token_type_t {
-    module_, using_, end_, func_, do_, var_,
-    const_, if_, while_, type_, enum_, struct_, line_
+    module_, using_, func_, do_, var_,
+    const_, type_, if_, while_, enum_, struct_, line_
 };
 
 typedef struct syntax_node_t {
@@ -26,4 +26,3 @@ struct syntax_node_t* make_tree(char* data, esize_t size, herror_t* perror);
 void delete_tree(struct syntax_node_t* root);
 
 #endif	/* SYNTAX_TREE_H */
-

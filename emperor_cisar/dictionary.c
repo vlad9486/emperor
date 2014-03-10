@@ -89,7 +89,7 @@ int find_in_dict(struct dict_entry_t* dict, void* data, predicate_func_t* predic
     return -1;
 }
 
-void delete_dict(struct dict_entry_t* dict)
+void delete_dict(struct dict_entry_t* dict, destroy_func_t* destroy_func)
 {
     struct dict_entry_t* temp;
     struct dict_entry_t* ptr;
@@ -98,7 +98,7 @@ void delete_dict(struct dict_entry_t* dict)
     while (temp != dict) {
         ptr = temp;
         temp = temp->next;
-        free(ptr);
+        destroy_func(ptr);
     }
     free(temp);
 }

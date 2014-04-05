@@ -3,23 +3,30 @@ module hello
 using
     system;
 
-const
-    n = 5i;
+obj main
 
-func main
-local
-    out int result;
-    in char[] cline;
-    int i;
+/*default*/
+
+end
+
+interface main
+
+(int n) property (immutable) n;
+(int result) msg (obj) start (char[] cmd_line);
+
+end
+
+implementation main
+
+(int result) msg start (char[] cmd_line)
+local (int i)
 do
     i := 0i;
-    while (i < n)
-        printf("hello, world\n");
+    while (i < self.n)
+        io.printf ("hello, world\n");
         i := i + 1i;
     end
-    result := n - i;
+    result := self.n - i;
 end
 
 end
-
-/*module (using var const type (enum struct) func (local do (while if)))*/

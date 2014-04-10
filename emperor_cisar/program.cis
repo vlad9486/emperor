@@ -1,32 +1,23 @@
-module hello
+module hello 
 
-using
-    system;
+using system;
 
-obj main
+main : main
 
-/*default*/
+  (int _n) getter n()
 
-end
+  (main* object) constructor init()
+    this = [main alloc];
+    _n = 5;
+    object = this;
+  end
 
-interface main
-
-(int n) property (immutable) n;
-(int result) msg (obj) start (char[] cmd_line);
-
-end
-
-implementation main
-
-(int result) msg start (char[] cmd_line)
-local (int i)
-do
-    i := 0i;
-    while (i < self.n)
-        io.printf ("hello, world\n");
-        i := i + 1i;
+  (int result) msg start(char[] cmd_line)
+    int i := 0i;
+    while (i < [this n])
+      [io printf("hello, world\n")];
+      i := i + 1i;
     end
-    result := self.n - i;
-end
-
+    result := [this n] - i;
+  end
 end
